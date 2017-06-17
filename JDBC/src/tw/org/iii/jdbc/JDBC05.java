@@ -18,8 +18,9 @@ public class JDBC05 {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("select * from Players");
 			while(rs.next()){
-				String pname = rs.getString("ProductName");
-				System.out.println(pname);
+				String fname = rs.getString("firstname");
+				String lname = rs.getString("lastname");
+				System.out.println(fname+" "+lname);
 			}
 			
 			conn.close();
