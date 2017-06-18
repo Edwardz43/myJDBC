@@ -9,27 +9,16 @@ import java.util.Properties;
 public class JDBC031 {
 
 	public static void main(String[] args) {
-		// 1. Driver
-		try{
-			Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("OK");
-		}catch(ClassNotFoundException ee){
-			System.out.println(ee);
-			System.exit(-1);
-		}
+		//--------------
+		Properties prop = new Properties();
+		prop.setProperty("user", "root");
+		prop.setProperty("password", "root");
 		
-		try{
-			
-			Properties prop = new Properties();
-			prop.setProperty("user", "root");
-			prop.setProperty("password", "");
-			
-			// 2. Connection
-			Connection conn = 
-					DriverManager.getConnection(
-							"jdbc:mysql://localhost/test",
-							prop);
-			
+		//增加自動關閉功能
+		try(Connection conn = 
+				DriverManager.getConnection(
+						"jdbc:mysql://localhost/brad",
+						prop)){
 			// 3. SQL statement
 			Statement stmt = conn.createStatement();
 			
@@ -52,6 +41,7 @@ public class JDBC031 {
 			}else{
 				System.out.println(sql);
 			}
+			
 		}catch(Exception e){
 			System.out.println(e);
 		}

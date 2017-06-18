@@ -9,18 +9,18 @@ public class JDBC05 {
 
 	public static void main(String[] args) {
 		String connectionUrl = 
-				"jdbc:sqlserver://localhost:1433;"+
-				"user=Ed43;password=P@ssw0rd;"+
-				"databaseName=NBA;";	
+				"jdbc:sqlserver://10.21.200.66:1433;"+
+				"user=sa;password=sa;"+
+				"databaseName=Northwind;";	
 		try{
 			Connection conn =
 					DriverManager.getConnection(connectionUrl);
 			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from Players");
+			ResultSet rs = stmt.executeQuery("select * from Products");
 			while(rs.next()){
-				String fname = rs.getString("firstname");
-				String lname = rs.getString("lastname");
-				System.out.println(fname+" "+lname);
+				String fname = rs.getString("ProductName");
+				String lname = rs.getString("Unitprice");
+				System.out.println(fname+" , "+lname);
 			}
 			
 			conn.close();
