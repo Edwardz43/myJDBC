@@ -5,14 +5,14 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.util.Properties;
 
-public class JDBC04 {
+public class JDBC041 {
 
 	public static void main(String[] args) {
 		//preparedstatement ->避免隱碼攻擊
 		//--------------
 		Properties prop = new Properties();
 		prop.setProperty("user", "root");
-		prop.setProperty("password", "");
+		prop.setProperty("password", "root");
 		
 		//增加自動關閉功能
 		try(Connection conn = 

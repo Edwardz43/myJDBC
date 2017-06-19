@@ -21,7 +21,7 @@ public class JDBC01 {
 			// 2. Connection
 			Connection conn = 
 					DriverManager.getConnection(
-					"jdbc:mysql://10.21.200.66/brad?" +
+					"jdbc:mysql://localhost/brad?" +
                     "user=root&password=root");
 			
 			// 3. SQL statement

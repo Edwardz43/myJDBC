@@ -9,7 +9,7 @@ import java.util.Properties;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
 
-public class JDBC06 {
+public class JDBC061 {
 
 	public static void main(String[] args) {
 		//
@@ -19,27 +19,27 @@ public class JDBC06 {
 		
 		try(Connection conn = 
 				DriverManager.getConnection(
-						"jdbc:mysql://localhost/brad",
+						"jdbc:mysql://localhost/nba",
 						prop)){
 			// 3. SQL statement
-			String sql = "select * from gift";
+			String sql = "select * from players";
 			
 			JSONWriter jw = new JSONStringer().array();
 			
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()){
-				String gid = rs.getString("gid");
-				String Name = rs.getString("Name");
-				String Feature = rs.getString("Feature");
-				String SalePlace = rs.getString("SalePlace");
+				String firstname = rs.getString("firstname");
+				String lastname = rs.getString("lastname");
+				String pos = rs.getString("pos");
+				String number = rs.getString("number");
 					
 				jw.object();
 				
-				jw.key("gid").value(gid);
-				jw.key("Name").value(Name);
-				jw.key("Feature").value(Feature);
-				jw.key("SalePlace").value(SalePlace);
+				jw.key("firstname").value(firstname);
+				jw.key("lastname").value(lastname);
+				jw.key("pos").value("#"+pos);
+				jw.key("number").value(number);
 				
 				jw.endObject();
 			}

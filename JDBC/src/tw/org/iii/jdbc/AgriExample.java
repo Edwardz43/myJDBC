@@ -12,7 +12,7 @@ import java.util.Properties;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class GiftExample {
+public class AgriExample {
 
 	public static void main(String[] args) {
 		
@@ -21,7 +21,7 @@ public class GiftExample {
 		prop.setProperty("password", "root");
 		
 		
-		String strurl ="http://data.coa.gov.tw/Service/OpenData/ODwsv/ODwsvAgriculturalProduce.aspx";
+		String strurl ="http://data.coa.gov.tw/Service/OpenData/ODwsv/ODwsvPermitAgri.aspx";
 		String json = getJSONString(strurl);
 		
 		
@@ -33,10 +33,10 @@ public class GiftExample {
 						"jdbc:mysql://localhost/brad",
 						prop)){
 			// 3. SQL statement
-			String sql = "INSERT INTO gift "+
-					"(gid, Name, Feature, SalePlace,"+
-					" ProduceOrg, SpecAndPrice, OrderUrl, ContactTel, Column1) "+
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+			String sql = "INSERT INTO agri "+
+					"(AgriMainName, CountyName, TownshipName, AgriMainAdrs,"+
+					" Longitude, Latitude, AgriTel, AgriURL, PermitNo, Photo) "+
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?);";
 			
 			
 			
@@ -45,25 +45,27 @@ public class GiftExample {
 			JSONArray root = new JSONArray(json);
 			for(int i = 0; i < root.length(); i++){
 				JSONObject row = root.getJSONObject(i);
-				String gid = row.getString("ID");
-				String name = row.getString("Name");
-				String feature = row.getString("Feature");
-				String salePlace = row.getString("SalePlace");
-				String produceOrg = row.getString("ProduceOrg");
-				String specAndPrice = row.getString("SpecAndPrice");
-				String orderUrl = row.getString("OrderUrl");
-				String contactTel = row.getString("ContactTel");
-				String column1 = row.getString("Column1");
+				String agriMainName = row.getString("AgriMainName");
+				String countyName = row.getString("CountyName");
+				String townshipName = row.getString("TownshipName");
+				String agriMainAdrs = row.getString("AgriMainAdrs");
+				String longitude = row.getString("Longitude");
+				String latitude = row.getString("Latitude");
+				String agriTel = row.getString("AgriTel");
+				String agriURL = row.getString("AgriURL");
+				String permitNo = row.getString("PermitNo");
+				String photo = row.getString("Photo");
 				
-				pstmt.setString(1, gid);
-				pstmt.setString(2, name);
-				pstmt.setString(3, feature);
-				pstmt.setString(4, salePlace);
-				pstmt.setString(5, produceOrg);
-				pstmt.setString(6, specAndPrice);
-				pstmt.setString(7, orderUrl);
-				pstmt.setString(8, contactTel);
-				pstmt.setString(9, column1);
+				pstmt.setString(1, agriMainName);
+				pstmt.setString(2, countyName);
+				pstmt.setString(3, townshipName);
+				pstmt.setString(4, agriMainAdrs);
+				pstmt.setString(5, longitude);
+				pstmt.setString(6, latitude);
+				pstmt.setString(7, agriTel);
+				pstmt.setString(8, agriURL);
+				pstmt.setString(9, permitNo);
+				pstmt.setString(10, photo);
 				
 				// 4. query
 				pstmt.execute();

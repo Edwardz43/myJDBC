@@ -21,12 +21,12 @@ public class JDBC03 {
 			
 			Properties prop = new Properties();
 			prop.setProperty("user", "root");
-			prop.setProperty("password", "");
+			prop.setProperty("password", "root");
 			
 			// 2. Connection
 			Connection conn = 
 					DriverManager.getConnection(
-							"jdbc:mysql://localhost/test",
+							"jdbc:mysql://localhost/brad",
 							prop);
 			
 			// 3. SQL statement
