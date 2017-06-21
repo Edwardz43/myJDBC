@@ -17,7 +17,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 /*3/27
  * 陽春版的檔案總管 
@@ -28,6 +30,7 @@ public class FileManager extends JFrame{
 	private JButton open, save, exit;
 	//文字區塊
 	private JTextArea ta;
+	private JScrollPane js;//圖像太大的話 設定視窗可以滾動
 	
 	//本體建構式
 	public FileManager(){
@@ -67,11 +70,13 @@ public class FileManager extends JFrame{
 		//設置各種元件
 		//TextArea
 		ta = new JTextArea();
+		js = new JScrollPane(ta, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		//上方區塊  置入三個按鈕
 		JPanel top = new JPanel(new FlowLayout());
 		top.add(open); top.add(save); top.add(exit);
 		add(top, BorderLayout.NORTH);
-		add(ta, BorderLayout.CENTER);
+		add(js, BorderLayout.CENTER);
 		
 		//設定TextArea顏色  亮灰色
 		ta.setBackground(Color.LIGHT_GRAY);

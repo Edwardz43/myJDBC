@@ -9,14 +9,14 @@ public class JDBC01 {
 
 	public static void main(String[] args) {
 		// 1. Driver
-		try{
-			Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("OK");
-		}catch(ClassNotFoundException ee){
-			System.out.println(ee);
-			System.exit(0);
-		}
-		
+//		try{
+//			Class.forName("com.mysql.jdbc.Driver");
+//			System.out.println("OK");
+//		}catch(ClassNotFoundException ee){
+//			System.out.println(ee);
+//			System.exit(0);
+//		}
+//		
 		try{
 			// 2. Connection
 			Connection conn = 
