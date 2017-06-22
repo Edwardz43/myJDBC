@@ -86,36 +86,23 @@ public class FileManager extends JFrame{
 		ta.setFont(new Font("微軟正黑體", Font.BOLD, 20));
 		//設定視窗大小  可見  右上關閉按鈕
 		setSize(800, 640);
+		setLocation(500, 250);
 		setVisible(true);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 	
 	//建立一個開啟檔案的方法
 	public void openFile(String file) {
-		//new 一個filechooser的實體  來執行開啟檔案
-//		JFileChooser fileChooser = new JFileChooser();
-//	    int option = fileChooser.showDialog(null, null);   
-//	    // 選擇"開啟"  就讀取檔案
-//	    if(option == JFileChooser.APPROVE_OPTION) {
-	        try {
-	        	//每次開啟新檔前 先重置TextArea 不然會重複
-	        	ta.setText("");
-	        	//上課用到的觀念   用buf來讀取filechooser選到的檔案
-//	            BufferedReader br = new BufferedReader(
-//	            		new FileReader(fileChooser.getSelectedFile()));
-	            //和上課時不同的  TextArea要多加一個line separator來讀取換行符號 然後輸出到textarea 不然無法換行
-	            String lineSeparator = System.getProperty("line.separator");
-	            //輸出
-				ta.append(file);
-                ta.append(lineSeparator);
-		
-	            //關水管
-//				br.close();
-	        }   
-	        catch(Exception e) {
-	            JOptionPane.showMessageDialog(null, e.toString(),"無法開啟檔案!", JOptionPane.ERROR_MESSAGE);
-	        }
-//	    }        
+
+        try {
+        	ta.setText("");
+            String lineSeparator = System.getProperty("line.separator");
+			ta.append(file);
+            ta.append(lineSeparator);
+        }   
+        catch(Exception e) {
+            JOptionPane.showMessageDialog(null, e.toString(),"無法開啟檔案!", JOptionPane.ERROR_MESSAGE);
+        }     
 	}
 	
 	//建立一個儲存的方法
