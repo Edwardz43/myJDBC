@@ -1,11 +1,10 @@
 package tw.org.iii.jdbc;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.StringReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.util.LinkedList;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -14,50 +13,30 @@ public class JsoupTest {
 
 	public static void main(String[] args) {
 		try {
-			Connection conn = 
-					DriverManager.getConnection(
-							"jdbc:mysql://localhost/nba",
-							"root","root");
+			String team = "http://www.nba.com/teams/"+"";
+			Document doc = Jsoup.connect(team).get();
+			Elements nums = doc.select(".nba-player-index__trending-item > a");
+//			System.out.println(nums.size());
+//			System.out.println(nums);
+			BufferedReader br = new BufferedReader(new StringReader(nums.toString()));
+			String line; 
 			
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("select firstname, lastname, website from players");
-			
-			int playerID =  1;
-			while(rs.next()){
-				String src = rs.getString("website");
-				Document doc = Jsoup.connect(src).get();
-				Elements test = doc.select("td");
-				StringBuffer temp = new StringBuffer();
-				temp.append(test.toString());
-				while(temp.indexOf("<td>") != -1){
-					temp.replace(temp.indexOf("<td>"), temp.indexOf("<td>") + 4, "");
-				}
-				while(temp.indexOf("</td>") != -1){
-					temp.replace(temp.indexOf("</td>"), temp.indexOf("</td>") + 5, "");
-				}
-				StringReader sr = new StringReader(temp.toString());
-				BufferedReader br = new BufferedReader(sr);
-				
-				String line; int i = 0;
-				float[] num = new float[8];
-				while((line = br.readLine()) != null && i < 8){
-					System.out.println(line + i);
-					num[i] = Float.parseFloat(line);
-					i++;
-				}
-				br.close();
-				
-				String sql = "UPDATE players "
-						+ "SET MPG = '"+num[0]+"', `FG%` = '"+num[1]+"', `3P%` ='"+num[2]+"',"
-						+ " `FT%` ='"+num[3]+"', PPG = '"+num[4]+"', RPG = '"+num[5]+"',"
-						+ " APG = '"+num[6]+"', BRG = '"+num[7]
-						+ "' WHERE playerID = " +playerID+";";
-				Statement stmt2 = conn.createStatement();
-				stmt2.execute(sql);
-				
-				playerID++;
+			int i = 0;
+			LinkedList temp = new LinkedList();
+			while((line = br.readLine()) != null){
+				if(line.contains("title"))
+					temp.add(line.substring(line.indexOf("/"), line.indexOf(">")-2));
+				i++;
 			}
-		} catch (Exception e) {e.printStackTrace();}
+			br.close();
+			
+			for(int j = 0; j < temp.size(); j++){
+				System.out.println(temp.get(j));
+			}
+			
+			
+		} catch (IOException e) {e.printStackTrace();}
+		
 	}
 }
 
