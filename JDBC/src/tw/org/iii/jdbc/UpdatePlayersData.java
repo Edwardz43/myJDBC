@@ -50,7 +50,7 @@ public class UpdatePlayersData {
 				String sql = "UPDATE players "
 						+ "SET MPG = '"+num[0]+"', `FG%` = '"+num[1]+"', `3P%` ='"+num[2]+"',"
 						+ " `FT%` ='"+num[3]+"', PPG = '"+num[4]+"', RPG = '"+num[5]+"',"
-						+ " APG = '"+num[6]+"', BRG = '"+num[7]
+						+ " APG = '"+num[6]+"', BPG = '"+num[7]
 						+ "' WHERE playerID = " +playerID+";";
 				Statement stmt2 = conn.createStatement();
 				stmt2.execute(sql);
