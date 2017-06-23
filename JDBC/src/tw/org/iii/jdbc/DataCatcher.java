@@ -10,9 +10,60 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class GetTeamNames {
-
+public class DataCatcher {
+	
+	public static void main(String[] args){
+		
+		
+		
+	}
+	
+	public static LinkedList<String> getImg(){
+		LinkedList<String> result = new LinkedList<String>();
+		try {
+			Document doc = Jsoup.connect("http://www.nba.com/teams").get();
+			Elements img = doc.select(".team__list > img");
+			BufferedReader br = new BufferedReader(new StringReader(img.toString()));
+			String line;
+			while((line = br.readLine()) != null){
+				int n = line.lastIndexOf("=") - 12;
+				line = line.substring(n , n+7);
+				result.add(line);
+			}
+		} catch (IOException e) {e.printStackTrace();}
+		
+		return result;
+	}
+	
+ 	public static LinkedList<Integer> getWinLoss(){
+		LinkedList<HashMap<String, String>> urls = getURL();
+		LinkedList<Integer> winLoss = new LinkedList<Integer>();
+		for(int i = 0; i < urls.size(); i++){
+			String url = urls.get(i).get("url");
+			Document doc;
+			String team = url; 
+			try {
+				doc = Jsoup.connect(team).get();
+				Elements teamLink = doc.select(".stat");
+				String temp = teamLink.toString();
+				BufferedReader br = new BufferedReader(new StringReader(temp));
+				String line;
+				Integer win = 0; Integer loss = 0; 
+				for(int j = 0; j < 2; j++){
+					line = br.readLine();
+					line= line.substring(line.indexOf(">") + 2, line.indexOf("/") - 2);
+					winLoss.add(Integer.parseInt(line));
+				}
+				
+				br.close();
+				
+			} catch (IOException e) {e.printStackTrace();}
+		}
+		return winLoss;
+	}
+	
 	public static LinkedList<HashMap<String, String>> getName(){
+		
 		LinkedList<HashMap<String, String>> name = new LinkedList<HashMap<String, String>>();
 		Document doc;
 		
@@ -23,7 +74,6 @@ public class GetTeamNames {
 			BufferedReader br = new BufferedReader(new StringReader(teamLink.toString()));
 			String line; 
 			
-			int i = 0;
 			while((line = br.readLine()) != null){
 				line = line.replaceFirst("<", "");
 				HashMap<String, String> tempName = new HashMap();
@@ -40,6 +90,7 @@ public class GetTeamNames {
 		} catch (IOException e) {e.printStackTrace();}
 		return name;
 	}
+	
 	public static LinkedList<HashMap<String, String>> getURL(){
 		LinkedList<HashMap<String, String>> url = new LinkedList<HashMap<String, String>>();
 		Document doc;
@@ -55,7 +106,9 @@ public class GetTeamNames {
 			while((line = br.readLine()) != null){
 				line = line.replaceFirst("<", "");
 				HashMap<String, String> tempURL = new HashMap();
-				tempURL.put("url", line.substring(line.indexOf("/"), line.indexOf(">")-2));
+				tempURL.put("url",
+						"http://www.nba.com"+line.substring(line.indexOf("/"),
+						line.indexOf(">")-2) + "s");
 					
 				url.add(tempURL);
 				i++;
