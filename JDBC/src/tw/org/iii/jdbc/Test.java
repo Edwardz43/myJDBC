@@ -1,5 +1,13 @@
 package tw.org.iii.jdbc;
 
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -7,13 +15,140 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class NBAPlayerUpdate_v2 {
 
-	public static void main(String[] args) {
+public class Test extends JFrame{
+	private JButton updateTeam, updatePlayer;
+	private int state = 0;
+	private static int teamCount = 0;
+	private static int totalTeam = 30;
+	private static int playerCount = 0;
+	private static int totalPlayer = 450;
+	private static MyCanvas myCanvas;
+	private static int progressBar = 0;
+	private Timer timer;
+	
+	public Test(){
+		super("NBA Updater");
+		setLayout(new BorderLayout());
+		
+		updateTeam= new JButton("更新球隊資料");updatePlayer= new JButton("更新球員資料");
+		JTabbedPane bottom = new JTabbedPane();
+		bottom.add(updateTeam);bottom.add(updatePlayer);
+		myCanvas = new MyCanvas();
+		
+		updateTeam.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(state == 0){
+					updateTeam();
+					state = 1;
+				} 
+			}
+		});
+		
+		updatePlayer.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(state == 0){
+					updatePlayer();
+					state = 2;
+				} 
+			}
+		});
+		
+		add(myCanvas, BorderLayout.CENTER);
+		add(bottom, BorderLayout.SOUTH);
+		timer = new Timer();
+		timer.schedule(new ViewTask(), 0, 20);
+		setSize(640, 480);
+		setLocation(getWidth()/2, getHeight() / 2);
+		setVisible(true);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		
+	}
+	
+	class ViewTask extends TimerTask{
+		@Override
+		public void run() {
+			progressBar = (int)(teamCount*10/totalTeam);
+			teamCount++;
+			myCanvas.repaint();
+		}
+	}
+	
+	class  MyCanvas extends Canvas{
+		@Override
+		public  void paint(Graphics g) {
+			Graphics2D g2d = (Graphics2D)g;
+			g2d.clearRect(0, 0, 640, 480);
+			g2d.fillRect(0, 0, 640, 480);
+			g2d.setColor(Color.white);
+			g2d.setFont(new Font("Serif", Font.BOLD, 26));
+			g2d.drawString(progressBar+"%", 295, 180);
+			g2d.setColor(Color.gray);
+			g2d.drawRect(98, 198, 443, 23);
+			g2d.setColor(Color.BLUE);
+			g2d.fillRect(100, 200, 440*progressBar/100, 20);
+			System.out.println("progressBar :"+440*progressBar/100);
+			
+		}
+	}
+	
+	public void updateTeam(){
+		LinkedList<HashMap<String, String>> names = DataCatcher.getName();
+		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
+		LinkedList <Integer> winloss = DataCatcher.getWinLoss();
+		LinkedList<String> imgs = DataCatcher.getImg();
+		try {
+			Connection conn;
+			conn = DriverManager.getConnection(
+					"jdbc:mysql://localhost/nba", "root","root");
+			
+			for(int i = 0; i < names.size(); i++){
+				String name = names.get(i).get("name");
+				String url = urls.get(i).get("url");
+				Integer win = winloss.get(i*2);
+				Integer loss = winloss.get(i*2+1);
+				String img = imgs.get(i);
+				
+				/* create
+				 * String sql = "CREATE TABLE `nba`.`team` 
+				 * ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , 
+				 *   `name` VARCHAR(250) NOT NULL , 
+				 *   `win` INT UNSIGNED NOT NULL , 
+				 *   `loss` INT UNSIGNED NOT NULL , 
+				 *   `website` VARCHAR(250) NOT NULL , 
+				 *   `picture` VARCHAR(250) NOT NULL , 
+				 *    PRIMARY KEY (`id`)) ENGINE = InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;";
+				 *    
+				 *    update
+				 */
+				
+				//insert
+				String sql = "insert into team (name, win,loss, website, picture) "
+						+ "values ('"+ name +"','"+ win +"','"+ loss +"','"+ url +"','"+ img+"');";
+				
+				Statement stmt = conn.createStatement();
+				stmt.execute(sql);
+				teamCount++;
+			}
+		} catch (Exception e) {e.printStackTrace();}
+		System.out.println("done");
+	}
+	
+	public static void updatePlayer() {
+		 
 		HashMap<String, String> firstname = new HashMap(); HashMap<String, String> lastname = new HashMap();
 		HashMap<String, String> pos = new HashMap(); HashMap<String, String> number = new HashMap();
 		HashMap<String, String> weight = new HashMap(); HashMap<String, String> height = new HashMap();
@@ -80,7 +215,10 @@ public class NBAPlayerUpdate_v2 {
 						while((line2 = br2.readLine())!= null){
 							if(line2.contains("jersey-number")){
 								temp = line2.substring(line2.indexOf("#")+1, line2.indexOf("/")-1);
-								if(temp.length()==0) temp = "'Null'";
+								if(temp.length()==0) {
+									System.out.println("ok");
+									temp = "'Null'";
+								}
 								number.put("number", temp);
 //								System.out.println(number.get("number"));
 							}
@@ -251,20 +389,22 @@ public class NBAPlayerUpdate_v2 {
 								","+mpg.get("mpg")+","+fg.get("fg")+","+threeP.get("threeP")+","+ft.get("ft")+","+ppg.get("ppg")+","+rpg.get("rpg")+
 								","+apg.get("apg")+","+bpg.get("bpg")+");";
 						
+						System.out.println(sql);
 						Statement stmt = conn.createStatement();
-						stmt.execute(sql);	
+						stmt.execute(sql);
+						playerCount++;
+						progressBar = (int)((playerCount * 100)/totalPlayer);
 					}
-					
 				}
 				System.out.println(teamIDS);
 				teamIDS++;
 			}
-			
-			
 		}catch (Exception e) {e.printStackTrace();}
 		System.out.println("done");
-	
-		
 	}
-}
+	
+	public static void main(String[] args) {
+		new Test();
+	}
 
+}

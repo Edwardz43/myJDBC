@@ -7,17 +7,16 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class NBATeamUpdate {
-
 	public static void main(String[] args) {
 		LinkedList<HashMap<String, String>> names = DataCatcher.getName();
 		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
 		LinkedList <Integer> winloss = DataCatcher.getWinLoss();
-		LinkedList<String> imgs = DataCatcher.getImg(); 
+		LinkedList<String> imgs = DataCatcher.getImg();
 		try {
 			Connection conn;
 			conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/nba", "root","root");
-		
+			
 			for(int i = 0; i < names.size(); i++){
 				String name = names.get(i).get("name");
 				String url = urls.get(i).get("url");
@@ -44,10 +43,11 @@ public class NBATeamUpdate {
 				
 				Statement stmt = conn.createStatement();
 				stmt.execute(sql);
-				System.out.println("name :"+name+", url :"+url+", win :"+win+", loss :"+ loss+", img :"+img);
+//				System.out.println("name :"+name+", url :"+url+", win :"+win+", loss :"+ loss+", img :"+img);
 			}
 		} catch (Exception e) {e.printStackTrace();}
 		
 	}
+	
 }
 
