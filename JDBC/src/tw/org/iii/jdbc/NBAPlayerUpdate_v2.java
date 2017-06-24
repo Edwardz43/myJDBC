@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,6 +15,7 @@ import org.jsoup.select.Elements;
 public class NBAPlayerUpdate_v2 {
 
 	public static void main(String[] args) {
+		
 		HashMap<String, String> firstname = new HashMap(); HashMap<String, String> lastname = new HashMap();
 		HashMap<String, String> pos = new HashMap(); HashMap<String, String> number = new HashMap();
 		HashMap<String, String> weight = new HashMap(); HashMap<String, String> height = new HashMap();
@@ -25,7 +27,6 @@ public class NBAPlayerUpdate_v2 {
 		HashMap<String, String> ppg = new HashMap(); HashMap<String, String> rpg = new HashMap();
 		HashMap<String, String> apg = new HashMap(); HashMap<String, String> bpg = new HashMap();
 		HashMap<String, String> picture = new HashMap();
-		
 		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
 		Integer teamIDS = 1;
 		

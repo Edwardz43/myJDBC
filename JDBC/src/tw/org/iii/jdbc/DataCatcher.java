@@ -93,34 +93,24 @@ public class DataCatcher {
 	
 	public static LinkedList<HashMap<String, String>> getURL(){
 		LinkedList<HashMap<String, String>> url = new LinkedList<HashMap<String, String>>();
-		Document doc;
-		
 		try {
+			Document doc;
 			doc = Jsoup.connect("http://nba.com/teams").get();
 			Elements teamLink = doc.select("div.team__list > a ");
-			
-			BufferedReader br = new BufferedReader(new StringReader(teamLink.toString()));
-			String line; 
-			
-			int i = 0;
-			while((line = br.readLine()) != null){
-				line = line.replaceFirst("<", "");
-				HashMap<String, String> tempURL = new HashMap();
-				tempURL.put("url",
-						"http://www.nba.com"+line.substring(line.indexOf("/"),
-						line.indexOf(">")-2) + "s");
-					
-				url.add(tempURL);
-				i++;
-			}
-			br.close();
-			
-			for(int j = 0; j < url.size(); j++){
-				HashMap<String, String> tempURL = new HashMap();
-				tempURL = url.get(j);
-			}
-			
-		} catch (IOException e) {e.printStackTrace();}
+			try(BufferedReader br = new BufferedReader(
+					new StringReader(teamLink.toString()));)
+				{
+					String line;
+					while((line = br.readLine()) != null){
+						HashMap<String, String> tempURL = new HashMap();
+						if(line.contains("href=\"/teams")){
+							tempURL.put("url", "http://www.nba.com"+line.substring(line.indexOf("/teams"), line.indexOf("\">")));
+							url.add(tempURL);
+						}
+					}
+				}
+//			for(int i = 0; i < url.size(); i ++) System.out.println(url.get(i));
+		} catch (Exception e) {e.printStackTrace();}
 		return url;
 	}
 }

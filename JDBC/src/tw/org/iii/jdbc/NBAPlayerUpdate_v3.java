@@ -1,209 +1,20 @@
 package tw.org.iii.jdbc;
 
-import java.awt.BorderLayout;
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+public class NBAPlayerUpdate_v3 {
 
-public class Test extends JFrame{
-	private JButton updateTeam, updatePlayer;
-	private int state = 0;
-	private static int teamCount = 0;
-	private static int totalTeam = 30;
-	private static int playerCount = 0;
-	private static int totalPlayer = 450;
-	private static MyCanvas myCanvas;
-	private static int progressBar = 0;
-	private Timer timer;
-	
-	public Test(){
-		super("NBA Updater");
-		setLayout(new BorderLayout());
-		
-		updateTeam= new JButton("更新球隊資料");updatePlayer= new JButton("更新球員資料");
-		JTabbedPane bottom = new JTabbedPane();
-		bottom.add(updateTeam);bottom.add(updatePlayer);
-		myCanvas = new MyCanvas();
-		
-		updateTeam.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(state == 0){
-					updateTeam();
-					state = 1;
-				} 
-			}
-		});
-		
-		updatePlayer.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(state == 0){
-					updatePlayer();
-					state = 2;
-				} 
-			}
-		});
-		
-		add(myCanvas, BorderLayout.CENTER);
-		add(bottom, BorderLayout.SOUTH);
-		timer = new Timer();
-		timer.schedule(new ViewTask(), 0, 20);
-		setSize(640, 480);
-		setLocation(getWidth()/2, getHeight() / 2);
-		setVisible(true);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		
-	}
-	
-	class ViewTask extends TimerTask{
-		@Override
-		public void run() {
-			if(state == 1)progressBar = (int)(teamCount*10/totalTeam);
-			else progressBar = (int)(playerCount*10/totalPlayer);
-			teamCount++;
-			myCanvas.repaint();
-		}
-	}
-	
-	class  MyCanvas extends JPanel{
-		@Override
-		protected void paintComponent(Graphics g) {
-			Graphics2D g2d = (Graphics2D)g;
-			g2d.clearRect(0, 0, 640, 480);
-			g2d.fillRect(0, 0, 640, 480);
-			g2d.setColor(Color.white);
-			g2d.setFont(new Font("Serif", Font.BOLD, 26));
-			g2d.drawString(progressBar+"%", 295, 180);
-			g2d.setColor(Color.gray);
-			g2d.drawRect(98, 198, 443, 23);
-			g2d.setColor(Color.BLUE);
-			g2d.fillRect(100, 200, 440*progressBar/100, 20);
-			System.out.println("progressBar :"+440*progressBar/100);
-			
-		}
-	}
-	
-	public void updateTeam(){
-		LinkedList<HashMap<String, String>> teams = new LinkedList<HashMap<String, String>>();
-		Document doc;
-		
-		try {
-			doc = Jsoup.connect("http://nba.com/teams").get();
-			Elements teamLinks = doc.select("div.team__list");
-			
-			//name & url
-			try(BufferedReader br = new BufferedReader(
-				new StringReader(teamLinks.toString()));)
-			{
-				String line;
-				while((line = br.readLine()) != null){
-					HashMap<String, String> team = new HashMap();
-					if(line.contains("href=\"/teams")){
-						team.put("name", line.substring(line.indexOf("\">")+2, line.indexOf("</a>")));
-						team.put("url", "http://www.nba.com"+line.substring(line.indexOf("/teams"), line.indexOf("\">")));
-						teams.add(team);
-					}
-				}
-			}
-			
-			//logo
-			try(BufferedReader br = new BufferedReader(
-					new StringReader(teamLinks.toString()));)
-			{
-				String line;int n = 0;
-				while((line = br.readLine()) != null){
-					if(line.contains("logo")){
-						HashMap<String, String> team = teams.get(n);
-						team.put("logo", line.substring(line.indexOf("src=") + 7, line.indexOf("\" alt")));
-						n++;
-					}
-				}
-			}
-			
-			// win & loss
-			for(int i = 0; i < teams.size(); i ++){
-				Document doc2;
-				String teamUrl = teams.get(i).get("url");
-				doc2 = Jsoup.connect(teamUrl).get();
-				Elements teamLink = doc2.select(".stat");
-				try (
-						BufferedReader br2 = new BufferedReader(new StringReader(teamLink.toString()));
-						)
-				{
-					String line2; int n = 0;
-					while((line2 = br2.readLine())!= null){
-						if(n == 0) {
-							line2 = line2.substring(line2.indexOf("stat\">") + 7, line2.indexOf("</s") - 1);
-							teams.get(i).put("win", line2);
-						}else {
-							line2 = line2.substring(line2.indexOf("stat\">") + 7, line2.indexOf("</s") - 1);
-							teams.get(i).put("loss", line2);
-						}			
-						n++;
-					}
-				}
-				//players
-				doc2 = Jsoup.connect(teamUrl).get();
-				teamLink = doc2.select(".nba-player-index__row");
-				
-				try (
-						BufferedReader br2 = new BufferedReader(new StringReader(teamLink.toString()));
-						)
-				{
-					String line2; int n = 0;
-					while((line2 = br2.readLine())!= null){
-						if(line2.contains("nba-player-index__trending-item"))n++;
-						teams.get(i).put("players", ""+n);
-					}
-				}
-			}
-			
-			//insert
-			try (Connection conn = DriverManager.getConnection(
-					"jdbc:mysql://localhost/nba", "root","root");){
-				
-				StringBuffer sql = new StringBuffer();
-				sql = sql.append("insert into team (name, win, loss, players, url, logo) values \n");
-				for(int i = 0; i < teams.size(); i++){
-					HashMap<String, String> team = teams.get(i);
-					sql = sql.append("('"+team.get("name")+"','"+ team.get("win") +"','"+ team.get("loss") +
-							"','"+ team.get("players") +"','"+ team.get("url")+"','"+team.get("logo")+"') ");
-					if(i != teams.size() - 1) sql = sql.append(",\n");
-				}
-//				System.out.println(sql.toString());
-				Statement stmt = conn.createStatement();
-				stmt.execute(sql.toString());
-			}	
-			System.out.println("done");
-			
-		} catch (Exception e) {e.printStackTrace();}
-	}
-	
-	public static void updatePlayer() {
+	public static void main(String[] args) {
 		LinkedList<HashMap<String, String>> players = new LinkedList<HashMap<String, String>>();
 		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
 		Integer teamIDS = 1;
@@ -457,10 +268,8 @@ public class Test extends JFrame{
 		}catch (Exception e) {e.printStackTrace();}
 		
 		System.out.println("done");
-	}
 	
-	public static void main(String[] args) {
-		new Test();
+		
 	}
-
 }
+
