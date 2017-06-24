@@ -1,6 +1,7 @@
 package tw.org.iii.jdbc;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -15,6 +16,13 @@ public class JDBC05 {
 		try{
 			Connection conn =
 					DriverManager.getConnection(connectionUrl);
+			//test Concurrency
+			DatabaseMetaData metadata = conn.getMetaData();
+			boolean isOK = metadata.supportsResultSetConcurrency(
+					ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+			System.out.println(isOK);
+			
+			
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("select * from Products");
 			while(rs.next()){
