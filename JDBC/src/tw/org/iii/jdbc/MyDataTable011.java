@@ -12,6 +12,7 @@ import java.util.Properties;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 
 
@@ -32,6 +33,8 @@ public class MyDataTable011 extends JFrame{
 		
 		model = new MytableModel();
 		table = new JTable(model);
+		table.getSelectionModel().addListSelectionListener( (e) -> MyDataTable011.this.whenSelect(e));
+		
 		JScrollPane jsp = new JScrollPane(table);
 		add(jsp , BorderLayout.CENTER);
 		
@@ -76,6 +79,10 @@ public class MyDataTable011 extends JFrame{
 //			System.out.println(row + " : "+ column+" : "+aValue);
 		}
 	}
+	private void whenSelect(ListSelectionEvent e){
+		System.out.println(e.getFirstIndex() + "X" + e.getLastIndex());
+	}
+	
 	
 	private void initDB() throws Exception{
 		Properties prop = new Properties();
@@ -91,7 +98,7 @@ public class MyDataTable011 extends JFrame{
 		rs.next(); dataCount = rs.getInt(1);
 		
 		// get Data
-		sql = "select * from player order by playerID";
+		sql = "select * from player order by debut asc ";
 		pstmt = conn.prepareStatement(sql,
 				ResultSet.TYPE_FORWARD_ONLY, 
 				ResultSet.CONCUR_UPDATABLE);
