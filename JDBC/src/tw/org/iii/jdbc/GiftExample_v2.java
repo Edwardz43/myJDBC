@@ -12,9 +12,10 @@ import java.util.Properties;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class GiftExample {
+public class GiftExample_v2 {
 
 	public static void main(String[] args) {
+		
 		Properties prop = new Properties();
 		prop.setProperty("user", "root");
 		prop.setProperty("password", "root");
@@ -23,7 +24,6 @@ public class GiftExample {
 		String strurl ="http://data.coa.gov.tw/Service/OpenData/ODwsv/ODwsvAgriculturalProduce.aspx";
 		String json = getJSONString(strurl);
 		Long startTime = System.currentTimeMillis();
-		
 		//增加自動關閉功能
 		try(Connection conn = 
 				DriverManager.getConnection(
@@ -62,9 +62,12 @@ public class GiftExample {
 				pstmt.setString(8, contactTel);
 				pstmt.setString(9, column1);
 				
-				// 4. query
-				pstmt.execute();
+				//batch
+				pstmt.addBatch();
 			}
+			// 4. query
+			pstmt.executeBatch();
+			
 			System.out.println("ok");
 			System.out.println(System.currentTimeMillis() - startTime);
 			

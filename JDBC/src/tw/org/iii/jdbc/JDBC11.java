@@ -19,10 +19,10 @@ public class JDBC11 {
 		try(Connection conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/brad",prop)){
 			
-			DatabaseMetaData metadata = conn.getMetaData();
-			boolean isOK = metadata.supportsResultSetConcurrency(
-					ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-			System.out.println(isOK);
+//			DatabaseMetaData metadata = conn.getMetaData();
+//			boolean isOK = metadata.supportsResultSetConcurrency(
+//					ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+//			System.out.println(isOK);
 			
 			
 			Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
