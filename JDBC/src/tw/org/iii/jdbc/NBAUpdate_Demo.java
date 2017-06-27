@@ -29,28 +29,28 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 
-public class NBAUpdate extends JFrame{
+public class NBAUpdate_Demo extends JFrame{
 	private JButton updateTeam, updatePlayer;
 	private int state = 0;
 	private static int teamCount = 0;
-	private static int totalTeam = 30;
+	private static int totalTeam = 5;
 	private static int playerCount = 0;
 	private static int totalPlayer = 450;
 	private static MyCanvas myCanvas;
 	private static int progressBar = 0;
 	private Timer timer;
-	private UpdateTeam ut;
-	private UpdatePlayer up;
+	private UpdateTeams ut;
+	private UpdatePlayers up;
 	private long startTime; 
 	private double estTime;
 	
-	public NBAUpdate(){
+	public NBAUpdate_Demo(){
 		super("NBA Updater");
 		setLayout(new BorderLayout());
 		
-		ut = new UpdateTeam();
+		ut = new UpdateTeams();
 		Thread tUpdateTeam = new Thread(ut);
-		up = new UpdatePlayer();
+		up = new UpdatePlayers();
 		Thread tUpdatePlayer = new Thread(up);
 		
 		updateTeam= new JButton("更新球隊資料");updatePlayer= new JButton("更新球員資料");
@@ -102,7 +102,7 @@ public class NBAUpdate extends JFrame{
 				estTime = computrTime(teamCount, totalTeam);
 //				System.out.println("progressBar :" + progressBar);
 				myCanvas.repaint();	
-				if(teamCount == 30) done();
+				if(teamCount == totalTeam) done();
 			} 
 			else{
 				playerCount = up.playerCount; 
@@ -156,13 +156,13 @@ public class NBAUpdate extends JFrame{
 	}
 	
 	public static void main(String[] args) {
-		new NBAUpdate();
+		new NBAUpdate_Demo();
 	}
 
 }
 
-class UpdateTeam implements Runnable{
-	public int teamCount, totalTeam = 30;
+class UpdateTeams implements Runnable{
+	public int teamCount, totalTeam = 5;
 	@Override
 	public void run(){
 		teamCount = 0;
@@ -203,7 +203,7 @@ class UpdateTeam implements Runnable{
 			}
 			
 			// win & loss
-			for(int i = 0; i < teams.size(); i ++){
+			for(int i = 0; i < 5; i ++){
 				Document doc2;
 				String teamUrl = teams.get(i).get("url");
 				doc2 = Jsoup.connect(teamUrl).get();
@@ -238,7 +238,7 @@ class UpdateTeam implements Runnable{
 						teams.get(i).put("players", ""+n);
 					}
 				}
-				teamCount++;
+				teamCount = (teamCount<5)?teamCount + 1:teamCount;
 				System.out.println("teamCount :"+teamCount);
 			}
 			
@@ -248,14 +248,15 @@ class UpdateTeam implements Runnable{
 				
 				StringBuffer sql = new StringBuffer();
 				sql = sql.append("insert into teams (name, win, loss, players, url, logo) values \n");
-				for(int i = 0; i < teams.size(); i++){
+				for(int i = 0; i < 5; i++){
 					HashMap<String, String> team = teams.get(i);
 					sql = sql.append("('"+team.get("name")+"','"+ team.get("win") +"','"+ team.get("loss") +
 							"','"+ team.get("players") +"','"+ team.get("url")+"','"+team.get("logo")+"') ");
-					if(i != teams.size() - 1) sql = sql.append(",\n");
+					if(i != 4) sql = sql.append(",\n");
 				}
 //				System.out.println(sql.toString());
 				Statement stmt = conn.createStatement();
+				System.out.println(sql);
 				stmt.execute(sql.toString());
 			}
 			System.out.println("done");
@@ -265,19 +266,19 @@ class UpdateTeam implements Runnable{
 }
 
 
-class UpdatePlayer implements Runnable{
+class UpdatePlayers implements Runnable{
 	public int totalPlayer = 450, playerCount = 0;
 	
 	@Override
 	public void run() {
 		
 		LinkedList<HashMap<String, String>> players = new LinkedList<HashMap<String, String>>();
-		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
+		LinkedList<HashMap<String, String>> urls = DataCatcher_Demo.getURL();
 		Integer teamIDS = 1;
 		try {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/nba","root","root");
-			StringBuffer sql = new StringBuffer("select sum(players) from teams ");
+			StringBuffer sql = new StringBuffer("select sum(players) from teams where teamId between 1 and 5 ");
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql.toString());
 			rs.next();
