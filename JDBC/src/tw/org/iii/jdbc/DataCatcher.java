@@ -3,43 +3,19 @@ package tw.org.iii.jdbc;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.LinkedList;
-
+import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class DataCatcher {
 	
-	public static void main(String[] args){
-		
-		
-		
-	}
-	
-	public static LinkedList<String> getImg(){
-		LinkedList<String> result = new LinkedList<String>();
-		try {
-			Document doc = Jsoup.connect("http://www.nba.com/teams").get();
-			Elements img = doc.select(".team__list > img");
-			BufferedReader br = new BufferedReader(new StringReader(img.toString()));
-			String line;
-			while((line = br.readLine()) != null){
-				int n = line.lastIndexOf("=") - 12;
-				line = line.substring(n , n+7);
-				result.add(line);
-			}
-		} catch (IOException e) {e.printStackTrace();}
-		
-		return result;
-	}
-	
- 	public static LinkedList<Integer> getWinLoss(){
-		LinkedList<HashMap<String, String>> urls = getURL();
-		LinkedList<Integer> winLoss = new LinkedList<Integer>();
+ 	public static ArrayList<Integer> getWinLoss(){
+		ArrayList<String> urls = get("link");
+		ArrayList<Integer> winLoss = new ArrayList<Integer>();
 		for(int i = 0; i < urls.size(); i++){
-			String url = urls.get(i).get("url");
+			String url = urls.get(i);
 			Document doc;
 			String team = url; 
 			try {
@@ -48,7 +24,6 @@ public class DataCatcher {
 				String temp = teamLink.toString();
 				BufferedReader br = new BufferedReader(new StringReader(temp));
 				String line;
-				Integer win = 0; Integer loss = 0; 
 				for(int j = 0; j < 2; j++){
 					line = br.readLine();
 					line= line.substring(line.indexOf(">") + 2, line.indexOf("/") - 2);
@@ -62,56 +37,38 @@ public class DataCatcher {
 		return winLoss;
 	}
 	
-	public static LinkedList<HashMap<String, String>> getName(){
-		
-		LinkedList<HashMap<String, String>> name = new LinkedList<HashMap<String, String>>();
-		Document doc;
-		
+	public static ArrayList<String> get(String type){
+		ArrayList<String> result = new ArrayList<String>();
+		String selector = "", beginKey= "", endKey= "";
+		int stringBegin = 0, stringEnd = 0;
+		switch (type) {
+		case "logo":
+			selector =".team__list > img";
+			beginKey ="src"; endKey = "svg";
+			stringBegin = 7 ; stringEnd = 3;
+			break;
+		case "name":
+			selector ="div.team__list > a";
+			beginKey ="\">"; endKey = "</a>";
+			stringBegin = 2 ; stringEnd = 0;
+			break;
+		case "link":
+			selector ="div.team__list > a";
+			beginKey ="href"; endKey = "\">";
+			stringBegin = 7 ; stringEnd = 0;
+			break;
+		default:
+			break;
+		}
 		try {
-			doc = Jsoup.connect("http://nba.com/teams").get();
-			Elements teamLink = doc.select("div.team__list > a ");
-			
-			BufferedReader br = new BufferedReader(new StringReader(teamLink.toString()));
-			String line; 
-			
-			while((line = br.readLine()) != null){
-				line = line.replaceFirst("<", "");
-				HashMap<String, String> tempName = new HashMap();
-				tempName.put("name", line.substring(line.indexOf(">")+1, line.indexOf("<")-1));
-				name.add(tempName);
+			Document doc = Jsoup.connect("http://nba.com/teams").get();
+			Elements elements = doc.select(selector);
+			for(Element element : elements){
+				String temp = element.toString();
+				result.add(temp.substring(temp.indexOf(beginKey) + stringBegin ,temp.indexOf(endKey) + stringEnd));
 			}
-			br.close();
-			
-			for(int j = 0; j < name.size(); j++){
-				HashMap<String, String> tempName = new HashMap();
-				tempName = name.get(j);
-			}
-			
-		} catch (IOException e) {e.printStackTrace();}
-		return name;
-	}
-	
-	public static LinkedList<HashMap<String, String>> getURL(){
-		LinkedList<HashMap<String, String>> url = new LinkedList<HashMap<String, String>>();
-		try {
-			Document doc;
-			doc = Jsoup.connect("http://nba.com/teams").get();
-			Elements teamLink = doc.select("div.team__list > a ");
-			try(BufferedReader br = new BufferedReader(
-					new StringReader(teamLink.toString()));)
-				{
-					String line;
-					while((line = br.readLine()) != null){
-						HashMap<String, String> tempURL = new HashMap();
-						if(line.contains("href=\"/teams")){
-							tempURL.put("url", "http://www.nba.com"+line.substring(line.indexOf("/teams"), line.indexOf("\">")));
-							url.add(tempURL);
-						}
-					}
-				}
-//			for(int i = 0; i < url.size(); i ++) System.out.println(url.get(i));
 		} catch (Exception e) {e.printStackTrace();}
-		return url;
+		return result;
 	}
 }
 

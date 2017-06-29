@@ -3,23 +3,24 @@ package tw.org.iii.jdbc;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 public class NBATeamUpdate {
 	public static void main(String[] args) {
-		LinkedList<HashMap<String, String>> names = DataCatcher.getName();
-		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
-		LinkedList <Integer> winloss = DataCatcher.getWinLoss();
-		LinkedList<String> imgs = DataCatcher.getImg();
+		ArrayList<String> names = DataCatcher.get("name");
+		ArrayList<String> urls = DataCatcher.get("link");
+		ArrayList<Integer> winloss = DataCatcher.getWinLoss();
+		ArrayList<String> imgs = DataCatcher.get("logo");
 		try {
 			Connection conn;
 			conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/nba", "root","root");
 			
 			for(int i = 0; i < names.size(); i++){
-				String name = names.get(i).get("name");
-				String url = urls.get(i).get("url");
+				String name = names.get(i);
+				String url = urls.get(i);
 				Integer win = winloss.get(i*2);
 				Integer loss = winloss.get(i*2+1);
 				String img = imgs.get(i);

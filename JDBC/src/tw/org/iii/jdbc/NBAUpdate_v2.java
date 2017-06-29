@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 
-public class NBAUpdate extends JFrame{
+public class NBAUpdate_v2 extends JFrame{
 	private JButton updateTeam, updatePlayer;
 	private int state = 0;
 	private static int teamCount = 0;
@@ -40,18 +41,18 @@ public class NBAUpdate extends JFrame{
 	private static MyCanvas myCanvas;
 	private static int progressBar = 0;
 	private Timer timer;
-	private UpdateTeam ut;
-	private UpdatePlayer up;
+	private UpdateTeam_v2 ut;
+	private UpdatePlayer_v2 up;
 	private long startTime; 
 	private double estTime;
 	
-	public NBAUpdate(){
+	public NBAUpdate_v2(){
 		super("NBA Updater");
 		setLayout(new BorderLayout());
 		
-		ut = new UpdateTeam();
+		ut = new UpdateTeam_v2();
 		Thread tUpdateTeam = new Thread(ut);
-		up = new UpdatePlayer();
+		up = new UpdatePlayer_v2();
 		Thread tUpdatePlayer = new Thread(up);
 		
 		updateTeam= new JButton("更新球隊資料");updatePlayer= new JButton("更新球員資料");
@@ -157,12 +158,12 @@ public class NBAUpdate extends JFrame{
 	}
 	
 	public static void main(String[] args) {
-		new NBAUpdate();
+		new NBAUpdate_v2();
 	}
 
 }
 
-class UpdateTeam implements Runnable{
+class UpdateTeam_v2 implements Runnable{
 	public int teamCount, totalTeam = 30;
 	@Override
 	public void run(){
@@ -248,16 +249,30 @@ class UpdateTeam implements Runnable{
 					"jdbc:mysql://localhost/nba", "root","root");){
 				
 				StringBuffer sql = new StringBuffer();
-				sql = sql.append("insert into teams (name, win, loss, players, url, logo) values \n");
+				sql = sql.append("insert into teams (name, win, loss, players, url, logo) values (?,?,?,?,?,?) ");
+				PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+				
 				for(int i = 0; i < teams.size(); i++){
-					HashMap<String, String> team = teams.get(i);
-					sql = sql.append("('"+team.get("name")+"','"+ team.get("win") +"','"+ team.get("loss") +
-							"','"+ team.get("players") +"','"+ team.get("url")+"','"+team.get("logo")+"') ");
-					if(i != teams.size() - 1) sql = sql.append(",\n");
-				}
-//				System.out.println(sql.toString());
-				Statement stmt = conn.createStatement();
-				stmt.execute(sql.toString());
+  					HashMap<String, String> team = teams.get(i);
+ 					sql = sql.append("('"+team.get("name")+"','"+ team.get("win") +"','"+ team.get("loss") +
+ 							"','"+ team.get("players") +"','"+ team.get("url")+"','"+team.get("logo")+"') ");
+ 					if(i != teams.size() - 1) sql = sql.append(",\n");
+ 					String name = team.get("name");
+ 					String win = team.get("win");
+ 					String loss = team.get("loss");
+ 					String players = team.get("players");
+ 					String url = team.get("url");
+ 					String logo = team.get("logo");
+ 					
+ 					pstmt.setString(1, name);
+ 					pstmt.setString(2, win);
+ 					pstmt.setString(3, loss);
+ 					pstmt.setString(4, players);
+ 					pstmt.setString(5, url);
+ 					pstmt.setString(6, logo);
+ 					pstmt.addBatch();
+  				}
+ 				pstmt.executeBatch();
 			}
 			System.out.println("done");
 			
@@ -266,7 +281,7 @@ class UpdateTeam implements Runnable{
 }
 
 
-class UpdatePlayer implements Runnable{
+class UpdatePlayer_v2 implements Runnable{
 	public int totalPlayer = 450, playerCount = 0;
 	
 	@Override
@@ -288,7 +303,7 @@ class UpdatePlayer implements Runnable{
 			for(int i = 0; i < urls.size(); i ++){
 				Document doc;
 				String url = urls.get(i);
-				doc = Jsoup.connect("http://www.nba.com/" + url).get();
+				doc = Jsoup.connect("http://www.nba.com/"+url).get();
 				Elements html = doc.select(".nba-player-index__trending-item > a[href]");
 				try (BufferedReader br = new BufferedReader(new StringReader(html.toString()));){
 					String line;
@@ -315,19 +330,11 @@ class UpdatePlayer implements Runnable{
 							while((line2 = br2.readLine())!= null){
 								if(line2.contains("first-name")){
 									temp = line2.substring(line2.indexOf(">")+2, line2.indexOf("/")-2);
-									if(temp.contains("'")) {
-										temp = temp.replace("'", "''");
-	//									System.out.println(temp);	
-									}
 									player.put("firstname", temp);
 	//								System.out.println(player.get("firstname"));
 								}
 								if(line2.contains("last-name")){
 									temp = line2.substring(line2.indexOf(">")+2, line2.indexOf("/")-2);
-									if(temp.contains("'")) {
-										temp = temp.replace("'", "''");
-	//									System.out.println(temp);	
-									}
 									player.put("lastname", temp);
 	//								System.out.println(player.get("lastname"));
 								}
@@ -339,7 +346,7 @@ class UpdatePlayer implements Runnable{
 							while((line2 = br2.readLine())!= null){
 								if(line2.contains("jersey-number")){
 									temp = line2.substring(line2.indexOf("#")+1, line2.indexOf("/")-1);
-									if(temp.length()==0) temp = "'Null'";
+									if(temp.length()==0) temp = "Null";
 									player.put("number", temp);
 	//								System.out.println(number.get("number"));
 								}
@@ -358,10 +365,10 @@ class UpdatePlayer implements Runnable{
 							int n = 0;
 							while((line2 = br2.readLine())!= null){
 								if(line2.contains("feet")){
-									temp = line2.substring(line2.indexOf("span")+5, line2.indexOf("abbr")-2) + "''";
+									temp = line2.substring(line2.indexOf("span")+5, line2.indexOf("abbr")-2) + "'";
 								}
 								if(line2.contains("inches")){
-									temp2 = line2.substring(line2.indexOf("span")+5, line2.indexOf("abbr")-2) + "''''";
+									temp2 = line2.substring(line2.indexOf("span")+5, line2.indexOf("abbr")-2) + "''";
 								}
 								if(n == 2){
 									player.put("height", temp+temp2);
@@ -393,17 +400,13 @@ class UpdatePlayer implements Runnable{
 								}
 								if(line2.contains("FROM")){
 									temp = line2.substring(line2.lastIndexOf("bottom-info") + 14, line2.lastIndexOf("span") - 3);
-									if(temp.contains("'")) {
-										temp = temp.replace("'", "");
-	//									System.out.println(temp);	
-									}
 									player.put("from", temp);
 	//								System.out.println(from.get("from"));
 								}
 								if(line2.contains("DEBUT")){
 									temp = line2.substring(line2.lastIndexOf("bottom-info") + 14, line2.lastIndexOf("span") - 3);
 									if(temp.contains("—")) {
-										temp = "Null";
+										temp = "0";
 	//									System.out.println(temp);	
 									}
 									player.put("debut", temp);
@@ -427,68 +430,41 @@ class UpdatePlayer implements Runnable{
 							n=0;
 							while((line2 = br2.readLine())!= null && n < 8){
 								temp = line2.substring(line2.indexOf("td") + 4, line2.indexOf("/") - 2);
+								if(temp.contains("—")) {
+									temp = "0";
+//									System.out.println(temp);	
+								}
+								
 								switch (n) {
 								case 0:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("mpg", temp);
 	//								System.out.println("mpg :"+mpg.get("mpg"));
 									break;
 								case 1:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("fg", temp);
 	//								System.out.println("fg :"+ fg.get("fg"));
 									break;
 								case 2:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("threeP", temp);
 	//								System.out.println("threeP :"+threeP.get("threeP"));
 									break;
 								case 3:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("ft", temp);
 	//								System.out.println("ft :"+ ft.get("ft"));
 									break;
 								case 4:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("ppg", temp);
 	//								System.out.println("ppg :"+ ppg.get("ppg"));
 									break;
 								case 5:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("rpg", temp);
 	//								System.out.println("rpg :" + rpg.get("rpg"));
 									break;
 								case 6:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("apg", temp);
 	//								System.out.println("apg :"+ apg.get("apg"));
 									break;
 								case 7:
-									if(temp.contains("—")) {
-										temp = "Null";
-	//									System.out.println(temp);	
-									}
 									player.put("bpg", temp);
 	//								System.out.println("bpg :"+bpg.get("bpg"));
 									break;
@@ -505,30 +481,58 @@ class UpdatePlayer implements Runnable{
 					teamIDS++;
 				}
 			}
-			/*
-			 * update
-			 * 
-			 * 
-			 */
 			//insert
 			sql.delete(0, sql.length()-1);
-			sql = sql.append("INSERT INTO players values ");
+			sql = sql.append("INSERT INTO nba.players "
+					+ "(firstname, lastname, pos, number, weight, height,"
+					+ " born, age, debut, picture, website, `[from]`, teamID,"
+					+ " mpg, `fg%`, `3p%`, `ft%`, ppg, rpg, apg, bpg) VALUES"
+					+ " (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+					+ " ?, ?, ?, ?, ?) ");
+			
+			PreparedStatement pstmt = conn.prepareStatement(sql.toString());
 			
 			for(int i = 0; i < players.size(); i++){
 				HashMap<String, String> player = players.get(i);
-				sql = sql.append (
-						"(NULL,'"+player.get("firstname")+"','"+player.get("lastname")+"','"+player.get("pos")+"',"+
-						player.get("number")+","+player.get("weight")+",'"+player.get("height")+"','"+player.get("born")+
-						"',"+player.get("age")+","+player.get("debut")+",'"+player.get("picture")+"','"+player.get("website")+
-						"','"+player.get("from")+"',"+player.get("teamID")+","+player.get("mpg")+","+player.get("fg")+","+
-						player.get("threeP")+","+player.get("ft")+","+player.get("ppg")+","+player.get("rpg")+
-						","+player.get("apg")+","+player.get("bpg")+")"
-						);
-				if(i != players.size() - 1) sql = sql.append(",\n");
+				String firstname = player.get("firstname");
+				String lastname = player.get("lastname");
+				String pos = player.get("pos");
+				String number = player.get("number");
+				String weight = player.get("weight");
+				String height = player.get("height");
+				String born = player.get("born");
+				String age = player.get("age");
+				String debut = player.get("debut");
+				String picture = player.get("picture");
+				String website = player.get("website");
+				String from = player.get("from");
+				String teamID = player.get("teamID");
+				String mpg = player.get("mpg");
+				String fg = player.get("fg");
+				String threeP = player.get("threeP");
+				String ft = player.get("ft");
+				String ppg = player.get("ppg");
+				String rpg = player.get("rpg");
+				String apg = player.get("apg");
+				String bpg = player.get("bpg");
+				
+				
+				pstmt.setString(1, firstname);pstmt.setString(2, lastname);
+				pstmt.setString(3, pos);pstmt.setString(4, number);
+				pstmt.setString(5, weight);pstmt.setString(6, height);
+				pstmt.setString(7, born);pstmt.setString(8, age);
+				pstmt.setString(9, debut);pstmt.setString(10, picture);
+				pstmt.setString(11, website);pstmt.setString(12, from);
+				pstmt.setString(13, teamID);pstmt.setString(14, mpg);
+				pstmt.setString(15, fg);pstmt.setString(16, threeP);
+				pstmt.setString(17, ft);pstmt.setString(18, ppg);
+				pstmt.setString(19, rpg);pstmt.setString(20, apg);
+				pstmt.setString(21, bpg);
+				
+				pstmt.addBatch();
+				
 			}
-//			System.out.println(sql);
-			stmt = conn.createStatement();
-			stmt.execute(sql.toString());	
+			pstmt.executeBatch();	
 			
 		}catch (Exception e) {e.printStackTrace();}
 		

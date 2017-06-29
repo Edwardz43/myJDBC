@@ -5,6 +5,7 @@ import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -16,12 +17,12 @@ public class NBAPlayerUpdate_v3 {
 
 	public static void main(String[] args) {
 		LinkedList<HashMap<String, String>> players = new LinkedList<HashMap<String, String>>();
-		LinkedList<HashMap<String, String>> urls = DataCatcher.getURL();
+		ArrayList<String> urls = DataCatcher.get("link");
 		Integer teamIDS = 1;
 		try {
 			for(int i = 0; i < urls.size(); i ++){
 				Document doc;
-				String url = urls.get(i).get("url");
+				String url = urls.get(i);
 				doc = Jsoup.connect(url).get();
 				Elements html = doc.select(".nba-player-index__trending-item > a[href]");
 				try (BufferedReader br = new BufferedReader(new StringReader(html.toString()));){
