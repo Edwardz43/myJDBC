@@ -106,7 +106,7 @@ public class DataCatcher_Demo {
 						if(line.contains("href=\"/teams")){
 							tempURL.put("url", "http://www.nba.com"+line.substring(line.indexOf("/teams"), line.indexOf("\">")));
 							url.add(tempURL);
-							if(url.size() == 3) return url;
+//							if(url.size() == 3) return url;
 						}
 					}
 				}

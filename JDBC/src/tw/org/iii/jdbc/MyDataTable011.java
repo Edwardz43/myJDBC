@@ -92,13 +92,13 @@ public class MyDataTable011 extends JFrame{
 		//count row & column
 		conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/nba",prop);
-		String sql = "select count(*) from player ";
+		String sql = "select count(*) from players ";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
 		rs = pstmt.executeQuery();
 		rs.next(); dataCount = rs.getInt(1);
 		
 		// get Data
-		sql = "select * from player order by debut asc ";
+		sql = "select * from players order by born asc ";
 		pstmt = conn.prepareStatement(sql,
 				ResultSet.TYPE_FORWARD_ONLY, 
 				ResultSet.CONCUR_UPDATABLE);

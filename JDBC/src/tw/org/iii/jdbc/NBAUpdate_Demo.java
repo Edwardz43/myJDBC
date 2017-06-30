@@ -41,7 +41,9 @@ public class NBAUpdate_Demo extends JFrame{
 	private static int progressBar = 0;
 	private Timer timer;
 	private UpdateTeams ut;
-	private UpdatePlayers up;
+	private int teamNumber = 6;
+	private UpdatePlayers[] up = new UpdatePlayers[teamNumber];
+	private Thread tUpdatePlayer[] = new Thread[teamNumber];
 	private long startTime; 
 	private double estTime;
 	
@@ -51,8 +53,11 @@ public class NBAUpdate_Demo extends JFrame{
 		
 		ut = new UpdateTeams();
 		Thread tUpdateTeam = new Thread(ut);
-		up = new UpdatePlayers();
-		Thread tUpdatePlayer = new Thread(up);
+		for(int i = 0; i < up.length; i ++){
+			UpdatePlayers upi = new UpdatePlayers(i);
+			up[i] = upi;			
+			tUpdatePlayer[i] = new Thread(upi);
+		}
 		
 		updateTeam= new JButton("更新球隊資料");updatePlayer= new JButton("更新球員資料");
 		
@@ -76,7 +81,8 @@ public class NBAUpdate_Demo extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				if(state == 0 || state == 3){
 					startTime = System.currentTimeMillis();
-					tUpdatePlayer.start();
+					for(int i = 0; i < tUpdatePlayer.length; i++)
+					tUpdatePlayer[i].start();
 					state = 2;
 				} 
 			}
@@ -85,7 +91,7 @@ public class NBAUpdate_Demo extends JFrame{
 		add(myCanvas, BorderLayout.CENTER);
 		add(bottom, BorderLayout.SOUTH);
 		timer = new Timer();
-		timer.schedule(new ViewTask(), 0, 20);
+		timer.schedule(new ViewTask(), 0, 100);
 		setSize(640, 480);
 		setLocation(getWidth()/2, getHeight() / 2);
 		setVisible(true);
@@ -105,9 +111,13 @@ public class NBAUpdate_Demo extends JFrame{
 				myCanvas.repaint();	
 				if(teamCount == totalTeam) done();
 			} 
-			else{
-				playerCount = up.playerCount; 
-				totalPlayer = up.totalPlayer;
+			else if (state == 2){
+				playerCount = totalPlayer = 0;
+				for(int i = 0; i < up.length; i ++){
+					playerCount += up[i].playerCount; 
+					totalPlayer += up[i].totalPlayer;
+				}
+				System.out.println("playerCount :"+playerCount+", totalPlayer : "+totalPlayer);
 				progressBar = (int)(playerCount*100/totalPlayer);
 				estTime = computrTime(playerCount, totalPlayer);
 //				System.out.println("progressBar :" + progressBar);
@@ -163,7 +173,7 @@ public class NBAUpdate_Demo extends JFrame{
 }
 
 class UpdateTeams implements Runnable{
-	public int teamCount, totalTeam = 3;
+	public int teamCount, totalTeam = 30;
 	@Override
 	public void run(){
 		teamCount = 0;
@@ -204,7 +214,7 @@ class UpdateTeams implements Runnable{
 			}
 			
 			// win & loss
-			for(int i = 0; i < 3; i ++){
+			for(int i = 0; i < teams.size(); i ++){
 				Document doc2;
 				String teamUrl = teams.get(i).get("url");
 				doc2 = Jsoup.connect(teamUrl).get();
@@ -239,7 +249,8 @@ class UpdateTeams implements Runnable{
 						teams.get(i).put("players", ""+n);
 					}
 				}
-				teamCount = (teamCount<5)?teamCount + 1:teamCount;
+				teamCount++;
+//				teamCount = (teamCount<5)?teamCount + 1:teamCount;
 				System.out.println("teamCount :"+teamCount);
 			}
 			
@@ -250,7 +261,7 @@ class UpdateTeams implements Runnable{
 				StringBuffer sql = new StringBuffer();
 				sql = sql.append("insert into teams (name, win, loss, players, url, logo) values (?,?,?,?,?,?) ");
 				PreparedStatement pstmt = conn.prepareStatement(sql.toString());
-				for(int i = 0; i < 3; i++){
+				for(int i = 0; i < teams.size(); i++){
   					HashMap<String, String> team = teams.get(i);
  					sql = sql.append("('"+team.get("name")+"','"+ team.get("win") +"','"+ team.get("loss") +
  							"','"+ team.get("players") +"','"+ team.get("url")+"','"+team.get("logo")+"') ");
@@ -280,29 +291,42 @@ class UpdateTeams implements Runnable{
 
 
 class UpdatePlayers implements Runnable{
-	public int totalPlayer = 450, playerCount = 0;
+	public int totalPlayer = 85, playerCount = 0, n, m;
+	
+	public UpdatePlayers(int n){
+		this.n = n;
+		this.m = 5;
+	}
 	
 	@Override
 	public void run() {
 		
 		LinkedList<HashMap<String, String>> players = new LinkedList<HashMap<String, String>>();
 		LinkedList<HashMap<String, String>> urls = DataCatcher_Demo.getURL();
-		Integer teamIDS = 1;
 		try {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/nba","root","root");
-			StringBuffer sql = new StringBuffer("select sum(players) from teams where teamId between 1 and 5 ");
+			StringBuffer sql = new StringBuffer("select sum(players) from teams where teamId between "+ (n*m +1)+" and "+ ((n+1)*m));
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql.toString());
 			rs.next();
 			totalPlayer = rs.getInt(1);
 			System.out.println(totalPlayer);
 			
-			for(int i = 0; i < urls.size(); i ++){
+			for(int i = 0; i < m; i ++){
 				Document doc;
-				String url = urls.get(i).get("url");
+				System.out.println(i+n*m);
+				String url = urls.get(i+n*m).get("url");
 				doc = Jsoup.connect(url).get();
 				Elements html = doc.select(".nba-player-index__trending-item > a[href]");
+				
+				sql = new StringBuffer("SELECT teamID FROM teams WHERE url = '"+url+"' ");
+				System.out.println(sql);
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery(sql.toString());
+				rs.next();
+				Integer teamIDS = rs.getInt(1);
+				
 				try (BufferedReader br = new BufferedReader(new StringReader(html.toString()));){
 					String line;
 					

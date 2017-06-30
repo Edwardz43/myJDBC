@@ -31,7 +31,7 @@ public class JDBC10 {
 			
 			int total = rsCount.getInt("num");
 			int rpp = 20;
-			int page = 2;
+			int page = 1;
 			int lastPage = (total % rpp == 0)?total / rpp : total / rpp + 1;
 			page = (page<=lastPage)?page:lastPage;
 			
