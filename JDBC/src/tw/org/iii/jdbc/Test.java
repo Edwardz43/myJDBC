@@ -23,12 +23,14 @@ public class Test {
 			Connection conn = DriverManager.getConnection(
 					"jdbc:mysql://localhost/nba","root","root");
 			StringBuffer sql = new StringBuffer(""
-					+ "select playerID, firstname, lastname from players where firstname = '"+"Vince"+"' and lastname = '"+"Carter"+"' ");
+					+ "select playerID, website from player where playerID = "+2);
+			System.out.println(sql);
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql.toString());
 			rs.next();
 			int playerID = rs.getInt(1);
-			System.out.println(playerID);
+			String url = rs.getString(1);
+			System.out.println(url);
 			Document doc = Jsoup.connect("http://www.nba.com/players/vince/carter/1713").get();
 			Elements es = doc.select(".nba-player-career-snapshot .scroll th, td");
 			int line = -63;
@@ -161,7 +163,7 @@ public class Test {
 			for(int i = 0; i < careerSets.size(); i++){
 				System.out.println(careerSets.get(i) +" : "+ i);
 			}
-			sql.delete(0, sql.length()-1);
+			sql.delete(0, sql.length());
 			sql = sql.append("INSERT INTO nba.career "
 					+ "(year, team, gp, gs, `min`, pts,"
 					+ " fgm, fga, `fg%`, 3pm, 3pa, `3p%`, ftm,"
@@ -169,7 +171,7 @@ public class Test {
 					+ "pf, `+/-`, playerID ) VALUES"
 					+ " (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
 					+ " ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
-			
+			System.out.println(sql);
 			PreparedStatement pstmt = conn.prepareStatement(sql.toString());
 			
 			for(int i = 0; i < careerSets.size(); i++){
