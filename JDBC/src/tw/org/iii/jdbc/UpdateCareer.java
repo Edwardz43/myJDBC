@@ -14,159 +14,93 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class UpdateCareer implements Runnable{
-	private int dataCount;
+	public int div, num, playerCount, totalPlayer;
 	
-	public UpdateCareer(int dataCount){
-		this.dataCount = dataCount;
+	public UpdateCareer(int div){
+		this.div = div;
+		this.num = 150;
 	}
 	
 	@Override
 	public void run() {
-		for(int j = 0; j < dataCount; j++){
+		for(int j = 0; j < num; j++){
 			LinkedList<HashMap<String, String>> careerSets = new LinkedList<HashMap<String, String>>();
 			try {
+				int playerID = div*num + j + 1;
 				Connection conn = DriverManager.getConnection(
 						"jdbc:mysql://localhost/nba","root","root");
-				StringBuffer sql = new StringBuffer(""
-						+ "select playerID, website from player where playerID = "+ dataCount);
+				
+				StringBuffer sql = new StringBuffer("select sum(players) from teams ");
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(sql.toString());
 				rs.next();
-				int playerID = dataCount;
-				String url = rs.getString(1);
-				System.out.println(url);
-				Document doc = Jsoup.connect("http://www.nba.com/players/vince/carter/1713").get();
+				totalPlayer = rs.getInt(1);
+//				System.out.println(playerID);
+				
+				
+				sql = new StringBuffer(""
+						+ "select playerID, website from players where playerID = "+ playerID);
+
+				rs = stmt.executeQuery(sql.toString());
+				if(!rs.next()) break;
+				
+				String url = rs.getString("website");
+				Document doc = Jsoup.connect(url).get();
 				Elements es = doc.select(".nba-player-career-snapshot .scroll th, td");
 				int line = -63;
 				HashMap<String, String> careerSet = new HashMap<String, String>();
 				for(Element temp : es){
-					System.out.println(temp +" : "+line);
+
 					if(line >= 0){
 						switch (line % 24) {
-						case 0:
-							careerSet.put("year", temp.text());
-//							System.out.println(careerSet.get("year") + " : " +i);
-							break;
-						case 1:
-							careerSet.put("team", temp.text());
-//							System.out.println(careerSet.get("team")+ " : " +i);
-							break;
-						case 2:
-							careerSet.put("gp", temp.text());
-//							System.out.println(careerSet.get("gp")+ " : " +i);
-							break;
-						case 3:
-							careerSet.put("gs", temp.text());
-//							System.out.println(careerSet.get("gs")+ " : " +i);
-							break;
-						case 4:
-							careerSet.put("min", temp.text());
-							break;
-						case 5:
-							careerSet.put("pts", temp.text());
-							break;
-						case 6:
-							careerSet.put("fgm", temp.text());
-							break;
-							
-						case 7:
-							careerSet.put("fga", temp.text());
-							break;
-						case 8:
-							careerSet.put("fg%", temp.text());
-							break;
-						case 9:
-							careerSet.put("3pm", temp.text());
-							break;
-						case 10:
-							careerSet.put("3pa", temp.text());
-							break;
-						case 11:
-							careerSet.put("3p%", temp.text());
-							break;
-						case 12:
-							careerSet.put("ftm", temp.text());
-							break;
-						case 13:
-							careerSet.put("fta", temp.text());
-							break;
-						case 14:
-							careerSet.put("ft%", temp.text());
-							break;
-							
-						case 15:
-							careerSet.put("oreb", temp.text());
-							break;
-						case 16:
-							careerSet.put("dreb", temp.text());
-							break;
-						case 17:
-							careerSet.put("reb", temp.text());
-							break;
-						case 18:
-							careerSet.put("ast", temp.text());
-							break;
-							
-						case 19:
-							careerSet.put("stl", temp.text());
-							break;
-						case 20:
-							careerSet.put("blk", temp.text());
-							break;
-						case 21:
-							careerSet.put("tov", temp.text());
-							break;
-						case 22:
-							careerSet.put("pf", temp.text());
-							break;
-						case 23:
-							careerSet.put("+/-", temp.text());
-//							System.out.println(temp[i]);
-							break;
+						case 0:careerSet.put("year", temp.text());break;
+						case 1:careerSet.put("team", temp.text());break;
+						case 2:careerSet.put("gp", temp.text());break;
+						case 3:careerSet.put("gs", temp.text());break;
+						case 4:careerSet.put("min", temp.text());break;
+						case 5:careerSet.put("pts", temp.text());break;
+						case 6:careerSet.put("fgm", temp.text());break;
+						case 7:careerSet.put("fga", temp.text());break;
+						case 8:careerSet.put("fg%", temp.text());break;
+						case 9:careerSet.put("3pm", temp.text());break;
+						case 10:careerSet.put("3pa", temp.text());break;
+						case 11:careerSet.put("3p%", temp.text());break;
+						case 12:careerSet.put("ftm", temp.text());break;
+						case 13:careerSet.put("fta", temp.text());break;
+						case 14:careerSet.put("ft%", temp.text());break;
+						case 15:careerSet.put("oreb", temp.text());break;
+						case 16:careerSet.put("dreb", temp.text());break;
+						case 17:careerSet.put("reb", temp.text());break;
+						case 18:careerSet.put("ast", temp.text());break;
+						case 19:careerSet.put("stl", temp.text());break;
+						case 20:careerSet.put("blk", temp.text());break;
+						case 21:careerSet.put("tov", temp.text());break;
+						case 22:careerSet.put("pf", temp.text());break;
+						case 23:careerSet.put("+/-", temp.text());break;
 						}
 						if((line -23)% 24 == 0 && line > 0) {
-//							System.out.println(careerSet);
 							HashMap<String, String> player = new HashMap<>();
-							player.put("year", careerSet.get("year"));
-							player.put("team", careerSet.get("team"));
-							player.put("gp", careerSet.get("gp"));
-							player.put("gs", careerSet.get("gs"));
-							player.put("min", careerSet.get("min"));
-							player.put("pts", careerSet.get("pts"));
-							player.put("fgm", careerSet.get("fgm"));
-							player.put("fga", careerSet.get("fga"));
-							player.put("fg%", careerSet.get("fg%"));
-							player.put("3pm", careerSet.get("3pm"));
-							player.put("3pa", careerSet.get("3pa"));
-							player.put("3p%", careerSet.get("3p%"));
-							player.put("ftm", careerSet.get("ftm"));
-							player.put("fta", careerSet.get("fta"));
-							player.put("ft%", careerSet.get("ft%"));
-							player.put("oreb", careerSet.get("oreb"));
-							player.put("dreb", careerSet.get("dreb"));
-							player.put("reb", careerSet.get("reb"));
-							player.put("ast", careerSet.get("ast"));
-							player.put("stl", careerSet.get("stl"));
-							player.put("blk", careerSet.get("blk"));
-							player.put("tov", careerSet.get("tov"));
-							player.put("pf", careerSet.get("pf"));
-							player.put("+/-", careerSet.get("+/-"));
+							player.put("year", careerSet.get("year"));player.put("team", careerSet.get("team"));
+							player.put("gp", careerSet.get("gp"));player.put("gs", careerSet.get("gs"));
+							player.put("min", careerSet.get("min"));player.put("pts", careerSet.get("pts"));
+							player.put("fgm", careerSet.get("fgm"));player.put("fga", careerSet.get("fga"));
+							player.put("fg%", careerSet.get("fg%"));player.put("3pm", careerSet.get("3pm"));
+							player.put("3pa", careerSet.get("3pa"));player.put("3p%", careerSet.get("3p%"));
+							player.put("ftm", careerSet.get("ftm"));player.put("fta", careerSet.get("fta"));
+							player.put("ft%", careerSet.get("ft%"));player.put("oreb", careerSet.get("oreb"));
+							player.put("dreb", careerSet.get("dreb"));player.put("reb", careerSet.get("reb"));
+							player.put("ast", careerSet.get("ast"));player.put("stl", careerSet.get("stl"));
+							player.put("blk", careerSet.get("blk"));player.put("tov", careerSet.get("tov"));
+							player.put("pf", careerSet.get("pf"));player.put("+/-", careerSet.get("+/-"));
 							
 							careerSets.add(player);
-							System.out.println(careerSets.size());
+							careerSets.size();
+							
 						}
 					}
 					line++;
 				}
 				
-//				for(int i = 0; i < temp.length; i++){
-//					System.out.println(temp[i] +" : "+i);
-//					
-//				}
-//				
-				for(int i = 0; i < careerSets.size(); i++){
-					System.out.println(careerSets.get(i) +" : "+ i);
-				}
 				sql.delete(0, sql.length());
 				sql = sql.append("INSERT INTO nba.career "
 						+ "(year, team, gp, gs, `min`, pts,"
@@ -175,7 +109,7 @@ public class UpdateCareer implements Runnable{
 						+ "pf, `+/-`, playerID ) VALUES"
 						+ " (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
 						+ " ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
-				
+
 				PreparedStatement pstmt = conn.prepareStatement(sql.toString());
 				
 				for(int i = 0; i < careerSets.size(); i++){
@@ -204,7 +138,7 @@ public class UpdateCareer implements Runnable{
 					String tov = player.get("tov");
 					String pf = player.get("pf");
 					String PM = player.get("+/-");
-				
+					
 					pstmt.setString(1, year);pstmt.setString(2, team);
 					pstmt.setString(3, gp);pstmt.setString(4, gs);
 					pstmt.setString(5, min);pstmt.setString(6, pts);
@@ -221,9 +155,11 @@ public class UpdateCareer implements Runnable{
 					pstmt.addBatch();
 					
 				}
-				pstmt.executeBatch();	
-					System.out.println("DONE");	
-
+				pstmt.executeBatch();
+				conn.close();
+//				System.out.println("DONE");	
+				playerCount++;
+				System.out.println("player :"+playerCount);	
 			} catch (Exception e) {e.printStackTrace();}	
 		}
 	}

@@ -15,10 +15,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-public class UpdatePlayer implements Runnable{
+public class UpdatePlayer_v2 implements Runnable{
 	public int totalPlayer = 85, playerCount = 0, n, m;
 	
-	public UpdatePlayer (int n){
+	public UpdatePlayer_v2 (int n){
 		this.n = n;
 		this.m = 5;
 	}
@@ -168,57 +168,7 @@ public class UpdatePlayer implements Runnable{
 							temp = line2.substring(line2.indexOf("src")+7,line2.length()-2);
 							player.put("picture", temp);
 	//						System.out.println(picture.get("picture"));
-								
 							
-							// state
-							test = doc.select("td");
-							br2 = new BufferedReader(new StringReader(test.toString()));
-							n=0;
-							while((line2 = br2.readLine())!= null && n < 8){
-								System.out.println(line2);
-								temp = line2.substring(line2.indexOf("td") + 4, line2.indexOf("/") - 2);
-								System.out.println(temp);
-								if(temp.contains("—")) {
-									temp = "0";
-//									System.out.println(temp);	
-								}
-								
-								switch (n) {
-								case 0:
-									player.put("mpg", temp);
-	//								System.out.println("mpg :"+mpg.get("mpg"));
-									break;
-								case 1:
-									player.put("fg", temp);
-	//								System.out.println("fg :"+ fg.get("fg"));
-									break;
-								case 2:
-									player.put("threeP", temp);
-	//								System.out.println("threeP :"+threeP.get("threeP"));
-									break;
-								case 3:
-									player.put("ft", temp);
-	//								System.out.println("ft :"+ ft.get("ft"));
-									break;
-								case 4:
-									player.put("ppg", temp);
-	//								System.out.println("ppg :"+ ppg.get("ppg"));
-									break;
-								case 5:
-									player.put("rpg", temp);
-	//								System.out.println("rpg :" + rpg.get("rpg"));
-									break;
-								case 6:
-									player.put("apg", temp);
-	//								System.out.println("apg :"+ apg.get("apg"));
-									break;
-								case 7:
-									player.put("bpg", temp);
-	//								System.out.println("bpg :"+bpg.get("bpg"));
-									break;
-								}
-								n++;
-							}
 							br2.close();
 							players.add(player);
 							playerCount  = players.size();
@@ -233,10 +183,8 @@ public class UpdatePlayer implements Runnable{
 			sql.delete(0, sql.length()-1);
 			sql = sql.append("INSERT INTO nba.players "
 					+ "(firstname, lastname, pos, number, weight, height,"
-					+ " born, age, debut, picture, website, `[from]`, teamID,"
-					+ " mpg, `fg%`, `3p%`, `ft%`, ppg, rpg, apg, bpg) VALUES"
-					+ " (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
-					+ " ?, ?, ?, ?, ?) ");
+					+ " born, age, debut, picture, website, `[from]`, teamID ) VALUES"
+					+ " (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
 			
 			PreparedStatement pstmt = conn.prepareStatement(sql.toString());
 			
@@ -254,16 +202,7 @@ public class UpdatePlayer implements Runnable{
 				String picture = player.get("picture");
 				String website = player.get("website");
 				String from = player.get("from");
-				String teamID = player.get("teamID");
-				String mpg = player.get("mpg");
-				String fg = player.get("fg");
-				String threeP = player.get("threeP");
-				String ft = player.get("ft");
-				String ppg = player.get("ppg");
-				String rpg = player.get("rpg");
-				String apg = player.get("apg");
-				String bpg = player.get("bpg");
-				
+				String teamID = player.get("teamID");		
 				
 				pstmt.setString(1, firstname);pstmt.setString(2, lastname);
 				pstmt.setString(3, pos);pstmt.setString(4, number);
@@ -271,11 +210,7 @@ public class UpdatePlayer implements Runnable{
 				pstmt.setString(7, born);pstmt.setString(8, age);
 				pstmt.setString(9, debut);pstmt.setString(10, picture);
 				pstmt.setString(11, website);pstmt.setString(12, from);
-				pstmt.setString(13, teamID);pstmt.setString(14, mpg);
-				pstmt.setString(15, fg);pstmt.setString(16, threeP);
-				pstmt.setString(17, ft);pstmt.setString(18, ppg);
-				pstmt.setString(19, rpg);pstmt.setString(20, apg);
-				pstmt.setString(21, bpg);
+				pstmt.setString(13, teamID);
 				
 				pstmt.addBatch();
 				

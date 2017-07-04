@@ -32,7 +32,7 @@ import org.jsoup.select.Elements;
 
 
 public class NBAUpdate_v3 extends JFrame{
-	private JButton updateTeam, updatePlayer;
+	private JButton updateTeam, updatePlayer, updateCareer;
 	private int state = 0;
 	private static int teamCount = 0;
 	private static int totalTeam = 30;
@@ -43,8 +43,10 @@ public class NBAUpdate_v3 extends JFrame{
 	private Timer timer;
 	private UpdateTeam ut;
 	private int teamNumber = 6;
-	private UpdatePlayer[] up = new UpdatePlayer[teamNumber];
+	private UpdatePlayer_v2[] up = new UpdatePlayer_v2[teamNumber];
 	private Thread tUpdatePlayer[] = new Thread[teamNumber];
+	private UpdateCareer[] uc = new UpdateCareer[4];
+	private Thread tUpdateCareer[] = new Thread[4];
 	private long startTime; 
 	private double estTime;
 	
@@ -55,21 +57,30 @@ public class NBAUpdate_v3 extends JFrame{
 		ut = new UpdateTeam();
 		Thread tUpdateTeam = new Thread(ut);
 		for(int i = 0; i < up.length; i ++){
-			UpdatePlayer upi = new UpdatePlayer(i);
+			UpdatePlayer_v2 upi = new UpdatePlayer_v2(i);
 			up[i] = upi;			
 			tUpdatePlayer[i] = new Thread(upi);
 		}
+		for(int i = 0; i < uc.length; i ++){
+			UpdateCareer uci = new UpdateCareer(i);
+			uc[i] = uci;			
+			tUpdateCareer[i] = new Thread(uci);
+		}
 		
-		updateTeam= new JButton("更新球隊資料");updatePlayer= new JButton("更新球員資料");
+		updateTeam= new JButton("更新球隊資料");
+		updatePlayer= new JButton("更新球員資料");
+		updateCareer= new JButton("更新球員生涯數據");
 		
 		JTabbedPane bottom = new JTabbedPane();
-		bottom.add(updateTeam);bottom.add(updatePlayer);
+		bottom.add(updateTeam);
+		bottom.add(updatePlayer);
+		bottom.add(updateCareer);
 		myCanvas = new MyCanvas();
 		
 		updateTeam.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(state == 0 || state == 3){
+				if(state == 0 || state == 4){
 					startTime = System.currentTimeMillis();
 					tUpdateTeam.start();
 					state = 1;
@@ -80,11 +91,23 @@ public class NBAUpdate_v3 extends JFrame{
 		updatePlayer.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(state == 0 || state == 3){
+				if(state == 0 || state == 4){
 					startTime = System.currentTimeMillis();
 					for(int i = 0; i < tUpdatePlayer.length; i++)
 						tUpdatePlayer[i].start();
 					state = 2;
+				} 
+			}
+		});
+		
+		updateCareer.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(state == 0 || state == 4){
+					startTime = System.currentTimeMillis();
+					for(int i = 0; i < tUpdateCareer.length; i++)
+						tUpdateCareer[i].start();
+					state = 3;
 				} 
 			}
 		});
@@ -109,10 +132,10 @@ public class NBAUpdate_v3 extends JFrame{
 				progressBar = (int)(teamCount*100/totalTeam);
 				estTime = computrTime(teamCount, totalTeam);
 //				System.out.println("progressBar :" + progressBar);
-				myCanvas.repaint();	
+				
 				if(teamCount == 30) done();
-			} 
-			else if (state == 2){
+				
+			} else if (state == 2){
 				playerCount = totalPlayer = 0;
 				for(int i = 0; i < up.length; i ++){
 					playerCount += up[i].playerCount; 
@@ -121,10 +144,22 @@ public class NBAUpdate_v3 extends JFrame{
 				progressBar = (int)(playerCount*100/totalPlayer);
 				estTime = computrTime(playerCount, totalPlayer);
 //				System.out.println("progressBar :" + progressBar);
-				myCanvas.repaint();	
+				
+				if(playerCount == totalPlayer) done();
+				
+			}else if(state == 3){
+				playerCount =  0;
+				totalPlayer = uc[0].totalPlayer;
+				for(int i = 0; i < uc.length; i ++){
+					playerCount += uc[i].playerCount; 
+				}
+				progressBar = (int)(playerCount*100/(totalPlayer = totalPlayer == 0 ? 1 : totalPlayer));
+				estTime = computrTime(playerCount, totalPlayer);
+//				System.out.println("progressBar :" + progressBar);
+					
 				if(playerCount == totalPlayer) done();
 			}
-			
+			myCanvas.repaint();
 		}
 	}
 	
@@ -135,7 +170,7 @@ public class NBAUpdate_v3 extends JFrame{
 			g2d.clearRect(0, 0, 640, 480);
 			g2d.fillRect(0, 0, 640, 480);
 			
-			if(state == 1 || state == 2){
+			if(state == 1 || state == 2 || state == 3){
 				g2d.setColor(Color.white);
 				g2d.setFont(new Font("Serif", Font.BOLD, 26));
 				g2d.drawString(progressBar+"%", 295, 180);
@@ -148,7 +183,7 @@ public class NBAUpdate_v3 extends JFrame{
 				if(teamCount > 0 || playerCount > 0)g2d.drawString("預估完成時間 : " +
 						(((int)estTime < 1)?"小於1":(int)estTime) + "分鐘", 235, 250);
 			}
-			if(state == 3){
+			if(state == 4){
 				g2d.setColor(Color.red);
 				g2d.setFont(new Font("Serif", Font.BOLD, 26));
 				g2d.drawString("更新完成!", 255, 180);
@@ -163,7 +198,7 @@ public class NBAUpdate_v3 extends JFrame{
 	}
 	
 	public void done(){
-		this.state = 3;
+		this.state = 4;
 	}
 	
 	public static void main(String[] args) {
