@@ -46,12 +46,13 @@ public class TaiwanRailwayExample {
 		
 				JSONObject root = new JSONObject(json);
 				JSONArray array = root.getJSONArray("TrainInfos");
-				//FileOutputStream fout = new FileOutputStream();
-//				BufferedWriter writer = new BufferedWriter(new FileWriter("/home/edlo/test.txt"));
-//				StringBuffer sb = new StringBuffer();
-				for(int i = 0; i < array.length(); i++) {					
+				BufferedWriter writer = new BufferedWriter(new FileWriter("/home/edlo/test.txt"));
+				for(int i = 0; i < 1; i++) {					
 					JSONObject  row = array.getJSONObject(i);
-//					System.out.println(row.toString());
+					writer.write(row.toString());
+					writer.flush();
+					writer.close();
+					System.out.println(row.toString());
 //					String Type = row.getString("Type");
 //					String CarClass = row.getString("CarClass");
 //					String Cripple = row.getString("Cripple");
@@ -85,26 +86,26 @@ public class TaiwanRailwayExample {
 //					// 4. query
 //					pstmt.execute();
 					JSONArray timeInfos  = row.getJSONArray("TimeInfos");
-					for(int j = 0; j < timeInfos.length(); j++) {
-						sql = "INSERT INTO timeinfo (station, `[order]`, route, arrTime, depTime, tid)  VALUES (?, ?, ?, ?, ?, ?) ";
-						pstmt = conn.prepareStatement(sql);
-						
-						JSONObject infos = timeInfos.getJSONObject(j);
-						String station = infos.getString("Station");
-						String order = infos.getString("Order");
-						String route = infos.getString("Route");
-						String arrTime = infos.getString("ArrTime");
-						String depTime = infos.getString("DepTime");
-//						System.out.println(station+" : "+order+" : "+route+" : "+arrTime+" : "+depTime);
-						
-						pstmt.setString(1, station);
-						pstmt.setString(2, order);
-						pstmt.setString(3, route);
-						pstmt.setString(4, arrTime);
-						pstmt.setString(5, depTime);
-						pstmt.setString(6, ""+(i+1));
-						pstmt.execute();
-					}
+//					for(int j = 0; j < timeInfos.length(); j++) {
+//						sql = "INSERT INTO timeinfo (station, `[order]`, route, arrTime, depTime, tid)  VALUES (?, ?, ?, ?, ?, ?) ";
+//						pstmt = conn.prepareStatement(sql);
+//						
+//						JSONObject infos = timeInfos.getJSONObject(j);
+//						String station = infos.getString("Station");
+//						String order = infos.getString("Order");
+//						String route = infos.getString("Route");
+//						String arrTime = infos.getString("ArrTime");
+//						String depTime = infos.getString("DepTime");
+////						System.out.println(station+" : "+order+" : "+route+" : "+arrTime+" : "+depTime);
+//						
+//						pstmt.setString(1, station);
+//						pstmt.setString(2, order);
+//						pstmt.setString(3, route);
+//						pstmt.setString(4, arrTime);
+//						pstmt.setString(5, depTime);
+//						pstmt.setString(6, ""+(i+1));
+//						pstmt.execute();
+//					}
 				}
 				System.out.println("ok");
 				System.out.println(System.currentTimeMillis() - startTime);	
