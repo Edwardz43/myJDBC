@@ -49,10 +49,7 @@ public class TaiwanRailwayExample {
 				BufferedWriter writer = new BufferedWriter(new FileWriter("/home/edlo/test.txt"));
 				for(int i = 0; i < 1; i++) {					
 					JSONObject  row = array.getJSONObject(i);
-					writer.write(row.toString());
-					writer.flush();
-					writer.close();
-					System.out.println(row.toString());
+					//System.out.println(row.toString());
 //					String Type = row.getString("Type");
 //					String CarClass = row.getString("CarClass");
 //					String Cripple = row.getString("Cripple");
@@ -86,11 +83,13 @@ public class TaiwanRailwayExample {
 //					// 4. query
 //					pstmt.execute();
 					JSONArray timeInfos  = row.getJSONArray("TimeInfos");
-//					for(int j = 0; j < timeInfos.length(); j++) {
+					StringBuffer sb = new StringBuffer();
+					for(int j = 0; j < timeInfos.length(); j++) {
 //						sql = "INSERT INTO timeinfo (station, `[order]`, route, arrTime, depTime, tid)  VALUES (?, ?, ?, ?, ?, ?) ";
 //						pstmt = conn.prepareStatement(sql);
 //						
-//						JSONObject infos = timeInfos.getJSONObject(j);
+						JSONObject infos = timeInfos.getJSONObject(j);
+						sb.append(infos.toString());
 //						String station = infos.getString("Station");
 //						String order = infos.getString("Order");
 //						String route = infos.getString("Route");
@@ -105,7 +104,10 @@ public class TaiwanRailwayExample {
 //						pstmt.setString(5, depTime);
 //						pstmt.setString(6, ""+(i+1));
 //						pstmt.execute();
-//					}
+					}
+					writer.write(sb.toString());
+					writer.flush();
+					writer.close();
 				}
 				System.out.println("ok");
 				System.out.println(System.currentTimeMillis() - startTime);	
